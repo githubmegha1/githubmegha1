@@ -1,0 +1,10 @@
+{
+	"name": "AzureBlobStorage255",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/a99ac8de-0c3b-472a-bb02-04d75d4dcd88/resourceGroups/Harish_RG/providers/Microsoft.Storage/storageAccounts/harishadlsgen2",
+		"groupId": "blob",
+		"fqdns": [
+			"harishadlsgen2.blob.core.windows.net"
+		]
+	}
+}

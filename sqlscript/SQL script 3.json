@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 3",
+	"properties": {
+		"content": {
+			"query": "CREATE EXTERNAL FILE FORMAT snappyparquet\nWITH\n(FORMAT_TYPE = PARQUET,\nDATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\n\nCOPY INTO [dbo].[COMPANY2]\nFROM 'https://storagemeghashah.dfs.core.windows.net/test/Company_Incremental_2023-04-14T16_12_41.3430923Z (1) (1).parquet'\nWITH (\nFILE_FORMAT = [snappyparquet],\nCREDENTIAL = (IDENTITY='Managed Identity')\n)\n\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Shahtest@123456';\n\nCREATE DATABASE SCOPED CREDENTIAL msi_cred WITH IDENTITY = 'Managed Service Identity';\n\nSELECT CONVERT (varchar(256), SERVERPROPERTY('collation')); \n\nselect LEN(description) from company where len(description)>8000;\n\nSELECT column_name, data_Type, character_maximum_length\nFROM information_Schema.columns\nWHERE table_name='Company'\n\nCOL_LENGTH('Company','MANAGERS_NOTES')\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Oracletest",
+				"poolName": "Oracletest"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

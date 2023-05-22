@@ -1,0 +1,7 @@
+{
+	"name": "AzureBlobStorage216",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/afd7de1c-d696-4e2d-9324-a7476f2ceeee/resourceGroups/training/providers/Microsoft.Storage/storageAccounts/gen2megha",
+		"groupId": "blob"
+	}
+}

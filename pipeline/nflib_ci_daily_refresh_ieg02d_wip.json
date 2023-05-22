@@ -1,0 +1,19 @@
+{
+	"name": "nflib_ci_daily_refresh_ieg02d_wip",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 1
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2023-02-22T23:41:56Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
