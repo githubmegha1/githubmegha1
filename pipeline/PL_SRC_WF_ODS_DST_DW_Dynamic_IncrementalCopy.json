@@ -39,7 +39,11 @@
 						}
 					},
 					"staging": {
-						"folderPath": "htwssyndevs1a/Erecruit_Parallon/Company/2023/04/14"
+						"linkedService": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "output"
 					},
 					"integrationRuntime": {
 						"referenceName": "AutoResolveIntegrationRuntime",
