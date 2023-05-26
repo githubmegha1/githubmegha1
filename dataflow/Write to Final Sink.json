@@ -21,30 +21,8 @@
 					"name": "FinalSinkTable"
 				}
 			],
-			"transformations": [
-				{
-					"name": "ScriptSetKeyColumnValueToCTKeyValue"
-				},
-				{
-					"name": "SetAlterRowConditions"
-				},
-				{
-					"name": "derivedColumn1"
-				},
-				{
-					"name": "derivedColumn2"
-				}
-			],
+			"transformations": [],
 			"scriptLines": [
-				"parameters{",
-				"     p_SinkKeyColumn as string (\"CompanyID\"),",
-				"     p_CTKeyColumnName as string (\"CTKey\"),",
-				"     p_SYS_CHANGE_OPERATION as string (\"I\"),",
-				"     p_SinkTableName as string (\"Company\"),",
-				"     p_Folder as string (\"Erecruit_Parallon/Company/2023/04/14/\"),",
-				"     p_Filename as string (\"Company_Incremental_2023-04-14T16:12:41.3430923Z.parquet\"),",
-				"     p_ArchiveFolder as string (\"Company/Archive\")",
-				"}",
 				"source(output(",
 				"          SourceSystemCode as string,",
 				"          LoadDate as timestamp,",
@@ -176,17 +154,10 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: true,",
-				"     moveFiles: [(concat($p_Folder,$p_Filename)),(concat($p_ArchiveFolder,'/',$p_Filename))],",
+				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
-				"     wildcardPaths:[(concat(toString($p_Folder), toString($p_Filename)))],",
 				"     fileSystem: 'htwssyndevs1a') ~> CTIncrementalStagingTable",
-				"derivedColumn1 derive(each(match(name==iif(name==$p_SinkKeyColumn,name,'noMatch')), $$ = byName($p_CTKeyColumnName))) ~> ScriptSetKeyColumnValueToCTKeyValue",
-				"ScriptSetKeyColumnValueToCTKeyValue alterRow(deleteIf(toString(byName($p_SYS_CHANGE_OPERATION))==('D')),",
-				"     upsertIf(toString(byName($p_SYS_CHANGE_OPERATION))==('U')||toString(byName($p_SYS_CHANGE_OPERATION))==('I'))) ~> SetAlterRowConditions",
-				"derivedColumn2 derive(SourceSystemCode = \"WF\") ~> derivedColumn1",
-				"CTIncrementalStagingTable derive(each(match(type=='String'&&length(name)>4000), $$ = substring($$, 1, 4000))) ~> derivedColumn2",
-				"SetAlterRowConditions sink(allowSchemaDrift: true,",
+				"CTIncrementalStagingTable sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          COMPANY_ID as integer,",
@@ -314,18 +285,18 @@
 				"          LoadDate as timestamp,",
 				"          UpdateDate as timestamp",
 				"     ),",
-				"     deletable:true,",
-				"     insertable:false,",
+				"     deletable:false,",
+				"     insertable:true,",
 				"     updateable:false,",
-				"     upsertable:true,",
-				"     keys:['SourceSystemCode',($p_SinkKeyColumn)],",
+				"     upsertable:false,",
 				"     format: 'table',",
-				"     staged: true,",
-				"     allowCopyCommand: true,",
+				"     staged: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError',",
+				"     errorHandlingOption: 'allErrors',",
+				"     transactionCommit: 'single',",
+				"     reportSuccessOnError: false,",
 				"     store: 'synapseanalytics',",
 				"     schemaName: 'dbo') ~> FinalSinkTable"
 			]
