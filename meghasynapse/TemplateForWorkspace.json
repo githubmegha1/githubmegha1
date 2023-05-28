@@ -1,0 +1,2853 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "meghasynapse"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureBlobStorage2_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage2'"
+		},
+		"AzureDataLakeStorage1_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage1'"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
+		"AzureSynapseAnalytics1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalytics1'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=meghasynapse.sql.azuresynapse.net;Initial Catalog=Oracletest"
+		},
+		"meghasynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'meghasynapse-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:meghasynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://storagemeghashah.dfs.core.windows.net/"
+		},
+		"meghasynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://gen2megha.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline 1')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlPoolSink",
+								"writeBehavior": "Insert",
+								"sqlWriterUseTableLock": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SqlPoolTable1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-03-22T18:22:41Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('workspaceId'), '/datasets/SqlPoolTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline 2')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"integrationRuntime": {
+								"referenceName": "AutoResolveIntegrationRuntime",
+								"type": "IntegrationRuntimeReference"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/nflib_ci_daily_refresh_ieg02d_wip')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-02-22T23:41:56Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/nflib_ci_daily_refresh_ieg_01_wip')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-02-22T23:15:41Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSynapseAnalyticsTable1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalytics1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "COMPANY_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NAME",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ADDRESS_LINE1",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CITY",
+						"type": "nvarchar"
+					},
+					{
+						"name": "POSTAL_CODE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PHONE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "FAX",
+						"type": "nvarchar"
+					},
+					{
+						"name": "EMAIL",
+						"type": "nvarchar"
+					},
+					{
+						"name": "HOME_PAGE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DEFAULT_CONTRACT_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CONTRACT_REMINDER_LEVEL",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "LIST",
+						"type": "bit"
+					},
+					{
+						"name": "CONTRACT_EXPIRES",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "CONTRACT_SW",
+						"type": "bit"
+					},
+					{
+						"name": "DESCRIPTION",
+						"type": "varchar"
+					},
+					{
+						"name": "DIRECTIONS",
+						"type": "varchar"
+					},
+					{
+						"name": "DAYS_TO_PAY",
+						"type": "decimal",
+						"precision": 6,
+						"scale": 0
+					},
+					{
+						"name": "FEE_PERCENTAGE",
+						"type": "real",
+						"precision": 7
+					},
+					{
+						"name": "CONTRACTOR_FEE_PERCENTAGE",
+						"type": "real",
+						"precision": 7
+					},
+					{
+						"name": "FLAT_FEE",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "AD_SOURCE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "HR_REP_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CONTRACT_NOTES",
+						"type": "varchar"
+					},
+					{
+						"name": "MANAGERS_NOTES",
+						"type": "varchar"
+					},
+					{
+						"name": "HR_NOTES",
+						"type": "varchar"
+					},
+					{
+						"name": "REGION_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "STATE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "COUNTRY",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DATE_ENTERED",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "CONTRACT_SENT",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "INDUSTRY_SUB_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "INDUSTRY",
+						"type": "nvarchar"
+					},
+					{
+						"name": "COMPANY_SUBM",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COMPANY_INV",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COMPANY_F_INT",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COMPANY_OFFER",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COMPANY_PLAC",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COMPANY_BILLING",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "COMPANY_AVG_D",
+						"type": "real",
+						"precision": 7
+					},
+					{
+						"name": "COMPANY_RATING",
+						"type": "real",
+						"precision": 7
+					},
+					{
+						"name": "DUPGROUP",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DUPFLAG",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DUPFREQ",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DONOTCALL",
+						"type": "bit"
+					},
+					{
+						"name": "VMS_SW",
+						"type": "bit"
+					},
+					{
+						"name": "BH_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OwnerID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "IsOwnershipPermanent",
+						"type": "bit"
+					},
+					{
+						"name": "IsAgreementRequired",
+						"type": "bit"
+					},
+					{
+						"name": "IsSummaryBilling",
+						"type": "bit"
+					},
+					{
+						"name": "StatusID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DefaultBillTo",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "LastNoteID",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "InvoiceBatchID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "PaymentTermsID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TimesheetPeriodsRangeCalendarID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Timestamp",
+						"type": "varchar"
+					},
+					{
+						"name": "FYEndDate",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "IsMergedTo",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CompanyStatusChangedToActiveDate",
+						"type": "date"
+					},
+					{
+						"name": "OwnerEntityID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "AdsourceAdditionalInfo",
+						"type": "varchar"
+					},
+					{
+						"name": "PrimaryPhone",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PrimaryPhoneTypeName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PrimaryEmail",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PrimaryEmailTypeName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "AutoCreateTimesheets",
+						"type": "bit"
+					},
+					{
+						"name": "CompanyTypeID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "InvoiceTemplateID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OpportunityID",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "VMSBurdenID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ExpenseTypeID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SplitTimesheetsForMonthlyBilling",
+						"type": "bit"
+					},
+					{
+						"name": "TimesheetCreationOption",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "InvoiceTemplateIDPerm",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TimesheetEntryTemplateID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DefaultContactID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "EmailCC",
+						"type": "nvarchar"
+					},
+					{
+						"name": "NeedsIndexing",
+						"type": "bit"
+					},
+					{
+						"name": "AllowEmptyTimesheets",
+						"type": "bit"
+					},
+					{
+						"name": "ExternalVendorID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadVouchersAsOnHold",
+						"type": "bit"
+					},
+					{
+						"name": "ARCollectorUserID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "CashOnAccount",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "TimesheetRangeCalendarID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TimesheetBatchID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TimesheetNotificationOptions",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DefaultAddressID",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "CreditScore",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LegalName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CreditLimit",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "LateFeePercentage",
+						"type": "float",
+						"precision": 15
+					},
+					{
+						"name": "ShowTimesheetBillingTotalToContact",
+						"type": "bit"
+					},
+					{
+						"name": "InvoiceModeID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OvertimeTypeID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DefaultFolderGroupID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CancellationDays",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "AdminBurdenID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OvertimeMultiplier",
+						"type": "decimal",
+						"precision": 9,
+						"scale": 4
+					},
+					{
+						"name": "DoubletimeMultiplier",
+						"type": "decimal",
+						"precision": 9,
+						"scale": 4
+					},
+					{
+						"name": "DivisionMarketID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DefaultBillRateMarkupPercentage",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 6
+					},
+					{
+						"name": "DefaultVendorRateMarkupPercentage",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 6
+					},
+					{
+						"name": "DefaultRateHolidayListID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ContactPortalInfo",
+						"type": "varchar"
+					},
+					{
+						"name": "InvoiceDiscountPercent",
+						"type": "decimal",
+						"precision": 22,
+						"scale": 10
+					},
+					{
+						"name": "CONTACT_ID_APPROVETIMESHEET",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "InvoiceTemplateIDMilestone",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "MilestoneTransactionTypeID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DefaultClientProjectID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "VATID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CreatedBy",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "RoutingFlagID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TLBillProcessingCalendarID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "LastModifiedOn",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "PONumberRequiredOnTimesheetEntry",
+						"type": "bit"
+					},
+					{
+						"name": "PONumberVisibleOnTimesheetEntry",
+						"type": "bit"
+					},
+					{
+						"name": "DefaultCompanyPONumberID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SalesTaxExemptStates",
+						"type": "varchar"
+					},
+					{
+						"name": "TimesheetBillRateMarginPercent",
+						"type": "decimal",
+						"precision": 5,
+						"scale": 4
+					},
+					{
+						"name": "AdSourceId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SourceSystemCode",
+						"type": "varchar"
+					},
+					{
+						"name": "LoadDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "UpdateDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "COMPANY2"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSynapseAnalytics1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Element_SampleData_20.csv",
+						"container": "synapse"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Company_Incremental_2023-05-24T17_51_44.6319935Z.parquet",
+						"fileSystem": "test"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "SourceSystemCode",
+						"type": "UTF8"
+					},
+					{
+						"name": "LoadDate",
+						"type": "INT96"
+					},
+					{
+						"name": "UpdateDate",
+						"type": "INT96"
+					},
+					{
+						"name": "COMPANY_ID",
+						"type": "INT32"
+					},
+					{
+						"name": "NAME",
+						"type": "UTF8"
+					},
+					{
+						"name": "ADDRESS_LINE1",
+						"type": "UTF8"
+					},
+					{
+						"name": "CITY",
+						"type": "UTF8"
+					},
+					{
+						"name": "POSTAL_CODE",
+						"type": "UTF8"
+					},
+					{
+						"name": "PHONE",
+						"type": "UTF8"
+					},
+					{
+						"name": "FAX",
+						"type": "UTF8"
+					},
+					{
+						"name": "EMAIL",
+						"type": "UTF8"
+					},
+					{
+						"name": "HOME_PAGE",
+						"type": "UTF8"
+					},
+					{
+						"name": "DEFAULT_CONTRACT_ID",
+						"type": "INT32"
+					},
+					{
+						"name": "CONTRACT_REMINDER_LEVEL",
+						"type": "INT32"
+					},
+					{
+						"name": "LIST",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "CONTRACT_EXPIRES",
+						"type": "INT96"
+					},
+					{
+						"name": "CONTRACT_SW",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "DESCRIPTION",
+						"type": "UTF8"
+					},
+					{
+						"name": "DIRECTIONS",
+						"type": "UTF8"
+					},
+					{
+						"name": "DAYS_TO_PAY",
+						"type": "DECIMAL",
+						"precision": 6,
+						"scale": 0
+					},
+					{
+						"name": "FEE_PERCENTAGE",
+						"type": "FLOAT"
+					},
+					{
+						"name": "CONTRACTOR_FEE_PERCENTAGE",
+						"type": "FLOAT"
+					},
+					{
+						"name": "FLAT_FEE",
+						"type": "DECIMAL",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "AD_SOURCE",
+						"type": "UTF8"
+					},
+					{
+						"name": "HR_REP_ID",
+						"type": "INT32"
+					},
+					{
+						"name": "CONTRACT_NOTES",
+						"type": "UTF8"
+					},
+					{
+						"name": "MANAGERS_NOTES",
+						"type": "UTF8"
+					},
+					{
+						"name": "HR_NOTES",
+						"type": "UTF8"
+					},
+					{
+						"name": "REGION_ID",
+						"type": "INT32"
+					},
+					{
+						"name": "STATE",
+						"type": "UTF8"
+					},
+					{
+						"name": "COUNTRY",
+						"type": "UTF8"
+					},
+					{
+						"name": "DATE_ENTERED",
+						"type": "INT96"
+					},
+					{
+						"name": "CONTRACT_SENT",
+						"type": "INT96"
+					},
+					{
+						"name": "INDUSTRY_SUB_ID",
+						"type": "INT32"
+					},
+					{
+						"name": "INDUSTRY",
+						"type": "UTF8"
+					},
+					{
+						"name": "COMPANY_SUBM",
+						"type": "INT32"
+					},
+					{
+						"name": "COMPANY_INV",
+						"type": "INT32"
+					},
+					{
+						"name": "COMPANY_F_INT",
+						"type": "INT32"
+					},
+					{
+						"name": "COMPANY_OFFER",
+						"type": "INT32"
+					},
+					{
+						"name": "COMPANY_PLAC",
+						"type": "INT32"
+					},
+					{
+						"name": "COMPANY_BILLING",
+						"type": "DECIMAL",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "COMPANY_AVG_D",
+						"type": "FLOAT"
+					},
+					{
+						"name": "COMPANY_RATING",
+						"type": "FLOAT"
+					},
+					{
+						"name": "DUPGROUP",
+						"type": "UTF8"
+					},
+					{
+						"name": "DUPFLAG",
+						"type": "UTF8"
+					},
+					{
+						"name": "DUPFREQ",
+						"type": "UTF8"
+					},
+					{
+						"name": "DONOTCALL",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "VMS_SW",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "BH_ID",
+						"type": "INT32"
+					},
+					{
+						"name": "OwnerID",
+						"type": "UTF8"
+					},
+					{
+						"name": "IsOwnershipPermanent",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "IsAgreementRequired",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "IsSummaryBilling",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "StatusID",
+						"type": "INT32"
+					},
+					{
+						"name": "DefaultBillTo",
+						"type": "INT32"
+					},
+					{
+						"name": "LastNoteID",
+						"type": "INT64"
+					},
+					{
+						"name": "InvoiceBatchID",
+						"type": "INT32"
+					},
+					{
+						"name": "PaymentTermsID",
+						"type": "INT32"
+					},
+					{
+						"name": "TimesheetPeriodsRangeCalendarID",
+						"type": "INT32"
+					},
+					{
+						"name": "Timestamp",
+						"type": "BINARY"
+					},
+					{
+						"name": "FYEndDate",
+						"type": "INT32"
+					},
+					{
+						"name": "IsMergedTo",
+						"type": "INT32"
+					},
+					{
+						"name": "CompanyStatusChangedToActiveDate",
+						"type": "DATE"
+					},
+					{
+						"name": "OwnerEntityID",
+						"type": "UTF8"
+					},
+					{
+						"name": "AdsourceAdditionalInfo",
+						"type": "UTF8"
+					},
+					{
+						"name": "PrimaryPhone",
+						"type": "UTF8"
+					},
+					{
+						"name": "PrimaryPhoneTypeName",
+						"type": "UTF8"
+					},
+					{
+						"name": "PrimaryEmail",
+						"type": "UTF8"
+					},
+					{
+						"name": "PrimaryEmailTypeName",
+						"type": "UTF8"
+					},
+					{
+						"name": "AutoCreateTimesheets",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "CompanyTypeID",
+						"type": "INT32"
+					},
+					{
+						"name": "InvoiceTemplateID",
+						"type": "INT32"
+					},
+					{
+						"name": "OpportunityID",
+						"type": "INT64"
+					},
+					{
+						"name": "VMSBurdenID",
+						"type": "INT32"
+					},
+					{
+						"name": "ExpenseTypeID",
+						"type": "INT32"
+					},
+					{
+						"name": "SplitTimesheetsForMonthlyBilling",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "TimesheetCreationOption",
+						"type": "INT32"
+					},
+					{
+						"name": "InvoiceTemplateIDPerm",
+						"type": "INT32"
+					},
+					{
+						"name": "TimesheetEntryTemplateID",
+						"type": "INT32"
+					},
+					{
+						"name": "DefaultContactID",
+						"type": "INT32"
+					},
+					{
+						"name": "EmailCC",
+						"type": "UTF8"
+					},
+					{
+						"name": "NeedsIndexing",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "AllowEmptyTimesheets",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "ExternalVendorID",
+						"type": "UTF8"
+					},
+					{
+						"name": "LoadVouchersAsOnHold",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "ARCollectorUserID",
+						"type": "UTF8"
+					},
+					{
+						"name": "CashOnAccount",
+						"type": "DECIMAL",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "TimesheetRangeCalendarID",
+						"type": "INT32"
+					},
+					{
+						"name": "TimesheetBatchID",
+						"type": "INT32"
+					},
+					{
+						"name": "TimesheetNotificationOptions",
+						"type": "INT32"
+					},
+					{
+						"name": "DefaultAddressID",
+						"type": "INT64"
+					},
+					{
+						"name": "CreditScore",
+						"type": "UTF8"
+					},
+					{
+						"name": "LegalName",
+						"type": "UTF8"
+					},
+					{
+						"name": "CreditLimit",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "LateFeePercentage",
+						"type": "DOUBLE"
+					},
+					{
+						"name": "ShowTimesheetBillingTotalToContact",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "InvoiceModeID",
+						"type": "INT32"
+					},
+					{
+						"name": "OvertimeTypeID",
+						"type": "INT32"
+					},
+					{
+						"name": "DefaultFolderGroupID",
+						"type": "INT32"
+					},
+					{
+						"name": "CancellationDays",
+						"type": "INT32"
+					},
+					{
+						"name": "AdminBurdenID",
+						"type": "INT32"
+					},
+					{
+						"name": "OvertimeMultiplier",
+						"type": "DECIMAL",
+						"precision": 9,
+						"scale": 4
+					},
+					{
+						"name": "DoubletimeMultiplier",
+						"type": "DECIMAL",
+						"precision": 9,
+						"scale": 4
+					},
+					{
+						"name": "DivisionMarketID",
+						"type": "INT32"
+					},
+					{
+						"name": "DefaultBillRateMarkupPercentage",
+						"type": "DECIMAL",
+						"precision": 18,
+						"scale": 6
+					},
+					{
+						"name": "DefaultVendorRateMarkupPercentage",
+						"type": "DECIMAL",
+						"precision": 18,
+						"scale": 6
+					},
+					{
+						"name": "DefaultRateHolidayListID",
+						"type": "INT32"
+					},
+					{
+						"name": "ContactPortalInfo",
+						"type": "UTF8"
+					},
+					{
+						"name": "InvoiceDiscountPercent",
+						"type": "DECIMAL",
+						"precision": 22,
+						"scale": 10
+					},
+					{
+						"name": "CONTACT_ID_APPROVETIMESHEET",
+						"type": "INT32"
+					},
+					{
+						"name": "InvoiceTemplateIDMilestone",
+						"type": "INT32"
+					},
+					{
+						"name": "MilestoneTransactionTypeID",
+						"type": "INT32"
+					},
+					{
+						"name": "DefaultClientProjectID",
+						"type": "INT32"
+					},
+					{
+						"name": "VATID",
+						"type": "UTF8"
+					},
+					{
+						"name": "CreatedBy",
+						"type": "UTF8"
+					},
+					{
+						"name": "RoutingFlagID",
+						"type": "INT32"
+					},
+					{
+						"name": "TLBillProcessingCalendarID",
+						"type": "INT32"
+					},
+					{
+						"name": "LastModifiedOn",
+						"type": "INT96"
+					},
+					{
+						"name": "PONumberRequiredOnTimesheetEntry",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "PONumberVisibleOnTimesheetEntry",
+						"type": "BOOLEAN"
+					},
+					{
+						"name": "DefaultCompanyPONumberID",
+						"type": "INT32"
+					},
+					{
+						"name": "SalesTaxExemptStates",
+						"type": "UTF8"
+					},
+					{
+						"name": "TimesheetBillRateMarginPercent",
+						"type": "DECIMAL",
+						"precision": 5,
+						"scale": 4
+					},
+					{
+						"name": "AdSourceId",
+						"type": "INT32"
+					},
+					{
+						"name": "CTKey",
+						"type": "INT32"
+					},
+					{
+						"name": "SYS_CHANGE_VERSION",
+						"type": "INT64"
+					},
+					{
+						"name": "SYS_CHANGE_OPERATION",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SqlPoolTable1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "SqlPoolTable",
+				"schema": [
+					{
+						"name": "tealium_event_id",
+						"type": "varchar"
+					},
+					{
+						"name": "tealium_visitor_id",
+						"type": "varchar"
+					},
+					{
+						"name": "tealium_session_id",
+						"type": "varchar"
+					},
+					{
+						"name": "tealium_timestamp_epoch",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "tealium_timestamp_local",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "tealium_date_local",
+						"type": "date"
+					},
+					{
+						"name": "tealium_time_local",
+						"type": "time",
+						"scale": 7
+					},
+					{
+						"name": "tealium_timestamp_utc",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "tealium_event_time",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "page_site_id",
+						"type": "varchar"
+					},
+					{
+						"name": "page_name",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_complete",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_domain",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_path",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_root",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_scheme",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_querystring",
+						"type": "varchar"
+					},
+					{
+						"name": "page_url_anchor",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_name",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_complete",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_domain",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_path",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_root",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_scheme",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_querystring",
+						"type": "varchar"
+					},
+					{
+						"name": "refer_page_url_anchor",
+						"type": "varchar"
+					},
+					{
+						"name": "element_name",
+						"type": "varchar"
+					},
+					{
+						"name": "element_type",
+						"type": "varchar"
+					},
+					{
+						"name": "element_cat_desc",
+						"type": "varchar"
+					},
+					{
+						"name": "element_context_desc",
+						"type": "varchar"
+					},
+					{
+						"name": "mbr_pers_gen_key",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "agent_san",
+						"type": "varchar"
+					},
+					{
+						"name": "employer_group_id",
+						"type": "varchar"
+					},
+					{
+						"name": "regis_id",
+						"type": "varchar"
+					},
+					{
+						"name": "mvt_cd",
+						"type": "varchar"
+					},
+					{
+						"name": "personalization_cd",
+						"type": "varchar"
+					},
+					{
+						"name": "article_id",
+						"type": "varchar"
+					},
+					{
+						"name": "appl_id",
+						"type": "varchar"
+					},
+					{
+						"name": "logged_in_ind",
+						"type": "varchar"
+					},
+					{
+						"name": "lang_desc",
+						"type": "varchar"
+					},
+					{
+						"name": "acoustic_cookie_id",
+						"type": "varchar"
+					},
+					{
+						"name": "tag_uid",
+						"type": "varchar"
+					},
+					{
+						"name": "tealium_session_event_sequence",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "tealium_event",
+						"type": "varchar"
+					},
+					{
+						"name": "session_start_date_skey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "session_start_mth_skey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "session_keycode",
+						"type": "varchar"
+					},
+					{
+						"name": "process_step",
+						"type": "varchar"
+					},
+					{
+						"name": "process_step_current",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "process_steps_total",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "etl_timestamp_utc",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tealium_element_dtl"
+				},
+				"sqlPool": {
+					"referenceName": "Oracletest",
+					"type": "SqlPoolReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/sqlPools/Oracletest')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage2')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage2_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureDataLakeStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStorage1_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "IntegrationRuntime1",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/IntegrationRuntime1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSynapseAnalytics1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalytics1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/meghasynapse-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('meghasynapse-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/meghasynapse-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('meghasynapse-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Trigger 1')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Pipeline 1",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 5,
+						"startTime": "2023-03-21T11:12:00",
+						"endTime": "2023-03-22T18:12:00",
+						"timeZone": "Pacific Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/Pipeline 1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/IntegrationRuntime1')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Dataflow1')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Parquet1",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsTable1",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          SourceSystemCode as string,",
+						"          LoadDate as timestamp,",
+						"          UpdateDate as timestamp,",
+						"          COMPANY_ID as integer,",
+						"          NAME as string,",
+						"          ADDRESS_LINE1 as string,",
+						"          CITY as string,",
+						"          POSTAL_CODE as string,",
+						"          PHONE as string,",
+						"          FAX as string,",
+						"          EMAIL as string,",
+						"          HOME_PAGE as string,",
+						"          DEFAULT_CONTRACT_ID as integer,",
+						"          CONTRACT_REMINDER_LEVEL as integer,",
+						"          LIST as boolean,",
+						"          CONTRACT_EXPIRES as timestamp,",
+						"          CONTRACT_SW as boolean,",
+						"          DESCRIPTION as string,",
+						"          DIRECTIONS as string,",
+						"          DAYS_TO_PAY as decimal(6,0),",
+						"          FEE_PERCENTAGE as float,",
+						"          CONTRACTOR_FEE_PERCENTAGE as float,",
+						"          FLAT_FEE as decimal(19,4),",
+						"          AD_SOURCE as string,",
+						"          HR_REP_ID as integer,",
+						"          CONTRACT_NOTES as string,",
+						"          MANAGERS_NOTES as string,",
+						"          HR_NOTES as string,",
+						"          REGION_ID as integer,",
+						"          STATE as string,",
+						"          COUNTRY as string,",
+						"          DATE_ENTERED as timestamp,",
+						"          CONTRACT_SENT as timestamp,",
+						"          INDUSTRY_SUB_ID as integer,",
+						"          INDUSTRY as string,",
+						"          COMPANY_SUBM as integer,",
+						"          COMPANY_INV as integer,",
+						"          COMPANY_F_INT as integer,",
+						"          COMPANY_OFFER as integer,",
+						"          COMPANY_PLAC as integer,",
+						"          COMPANY_BILLING as decimal(19,4),",
+						"          COMPANY_AVG_D as float,",
+						"          COMPANY_RATING as float,",
+						"          DUPGROUP as string,",
+						"          DUPFLAG as string,",
+						"          DUPFREQ as string,",
+						"          DONOTCALL as boolean,",
+						"          VMS_SW as boolean,",
+						"          BH_ID as integer,",
+						"          OwnerID as string,",
+						"          IsOwnershipPermanent as boolean,",
+						"          IsAgreementRequired as boolean,",
+						"          IsSummaryBilling as boolean,",
+						"          StatusID as integer,",
+						"          DefaultBillTo as integer,",
+						"          LastNoteID as long,",
+						"          InvoiceBatchID as integer,",
+						"          PaymentTermsID as integer,",
+						"          TimesheetPeriodsRangeCalendarID as integer,",
+						"          Timestamp as binary,",
+						"          FYEndDate as integer,",
+						"          IsMergedTo as integer,",
+						"          CompanyStatusChangedToActiveDate as date,",
+						"          OwnerEntityID as string,",
+						"          AdsourceAdditionalInfo as string,",
+						"          PrimaryPhone as string,",
+						"          PrimaryPhoneTypeName as string,",
+						"          PrimaryEmail as string,",
+						"          PrimaryEmailTypeName as string,",
+						"          AutoCreateTimesheets as boolean,",
+						"          CompanyTypeID as integer,",
+						"          InvoiceTemplateID as integer,",
+						"          OpportunityID as long,",
+						"          VMSBurdenID as integer,",
+						"          ExpenseTypeID as integer,",
+						"          SplitTimesheetsForMonthlyBilling as boolean,",
+						"          TimesheetCreationOption as integer,",
+						"          InvoiceTemplateIDPerm as integer,",
+						"          TimesheetEntryTemplateID as integer,",
+						"          DefaultContactID as integer,",
+						"          EmailCC as string,",
+						"          NeedsIndexing as boolean,",
+						"          AllowEmptyTimesheets as boolean,",
+						"          ExternalVendorID as string,",
+						"          LoadVouchersAsOnHold as boolean,",
+						"          ARCollectorUserID as string,",
+						"          CashOnAccount as decimal(19,4),",
+						"          TimesheetRangeCalendarID as integer,",
+						"          TimesheetBatchID as integer,",
+						"          TimesheetNotificationOptions as integer,",
+						"          DefaultAddressID as long,",
+						"          CreditScore as string,",
+						"          LegalName as string,",
+						"          CreditLimit as double,",
+						"          LateFeePercentage as double,",
+						"          ShowTimesheetBillingTotalToContact as boolean,",
+						"          InvoiceModeID as integer,",
+						"          OvertimeTypeID as integer,",
+						"          DefaultFolderGroupID as integer,",
+						"          CancellationDays as integer,",
+						"          AdminBurdenID as integer,",
+						"          OvertimeMultiplier as decimal(9,4),",
+						"          DoubletimeMultiplier as decimal(9,4),",
+						"          DivisionMarketID as integer,",
+						"          DefaultBillRateMarkupPercentage as decimal(18,6),",
+						"          DefaultVendorRateMarkupPercentage as decimal(18,6),",
+						"          DefaultRateHolidayListID as integer,",
+						"          ContactPortalInfo as string,",
+						"          InvoiceDiscountPercent as decimal(22,10),",
+						"          CONTACT_ID_APPROVETIMESHEET as integer,",
+						"          InvoiceTemplateIDMilestone as integer,",
+						"          MilestoneTransactionTypeID as integer,",
+						"          DefaultClientProjectID as integer,",
+						"          VATID as string,",
+						"          CreatedBy as string,",
+						"          RoutingFlagID as integer,",
+						"          TLBillProcessingCalendarID as integer,",
+						"          LastModifiedOn as timestamp,",
+						"          PONumberRequiredOnTimesheetEntry as boolean,",
+						"          PONumberVisibleOnTimesheetEntry as boolean,",
+						"          DefaultCompanyPONumberID as integer,",
+						"          SalesTaxExemptStates as string,",
+						"          TimesheetBillRateMarginPercent as decimal(5,4),",
+						"          AdSourceId as integer,",
+						"          CTKey as integer,",
+						"          SYS_CHANGE_VERSION as long,",
+						"          SYS_CHANGE_OPERATION as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> source1",
+						"source1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          COMPANY_ID as integer,",
+						"          NAME as string,",
+						"          ADDRESS_LINE1 as string,",
+						"          CITY as string,",
+						"          POSTAL_CODE as string,",
+						"          PHONE as string,",
+						"          FAX as string,",
+						"          EMAIL as string,",
+						"          HOME_PAGE as string,",
+						"          DEFAULT_CONTRACT_ID as integer,",
+						"          CONTRACT_REMINDER_LEVEL as integer,",
+						"          LIST as boolean,",
+						"          CONTRACT_EXPIRES as timestamp,",
+						"          CONTRACT_SW as boolean,",
+						"          DESCRIPTION as string,",
+						"          DIRECTIONS as string,",
+						"          DAYS_TO_PAY as decimal(6,0),",
+						"          FEE_PERCENTAGE as float,",
+						"          CONTRACTOR_FEE_PERCENTAGE as float,",
+						"          FLAT_FEE as decimal(19,4),",
+						"          AD_SOURCE as string,",
+						"          HR_REP_ID as integer,",
+						"          CONTRACT_NOTES as string,",
+						"          MANAGERS_NOTES as string,",
+						"          HR_NOTES as string,",
+						"          REGION_ID as integer,",
+						"          STATE as string,",
+						"          COUNTRY as string,",
+						"          DATE_ENTERED as timestamp,",
+						"          CONTRACT_SENT as timestamp,",
+						"          INDUSTRY_SUB_ID as integer,",
+						"          INDUSTRY as string,",
+						"          COMPANY_SUBM as integer,",
+						"          COMPANY_INV as integer,",
+						"          COMPANY_F_INT as integer,",
+						"          COMPANY_OFFER as integer,",
+						"          COMPANY_PLAC as integer,",
+						"          COMPANY_BILLING as decimal(19,4),",
+						"          COMPANY_AVG_D as float,",
+						"          COMPANY_RATING as float,",
+						"          DUPGROUP as string,",
+						"          DUPFLAG as string,",
+						"          DUPFREQ as string,",
+						"          DONOTCALL as boolean,",
+						"          VMS_SW as boolean,",
+						"          BH_ID as integer,",
+						"          OwnerID as string,",
+						"          IsOwnershipPermanent as boolean,",
+						"          IsAgreementRequired as boolean,",
+						"          IsSummaryBilling as boolean,",
+						"          StatusID as integer,",
+						"          DefaultBillTo as integer,",
+						"          LastNoteID as long,",
+						"          InvoiceBatchID as integer,",
+						"          PaymentTermsID as integer,",
+						"          TimesheetPeriodsRangeCalendarID as integer,",
+						"          Timestamp as string,",
+						"          FYEndDate as integer,",
+						"          IsMergedTo as integer,",
+						"          CompanyStatusChangedToActiveDate as date,",
+						"          OwnerEntityID as string,",
+						"          AdsourceAdditionalInfo as string,",
+						"          PrimaryPhone as string,",
+						"          PrimaryPhoneTypeName as string,",
+						"          PrimaryEmail as string,",
+						"          PrimaryEmailTypeName as string,",
+						"          AutoCreateTimesheets as boolean,",
+						"          CompanyTypeID as integer,",
+						"          InvoiceTemplateID as integer,",
+						"          OpportunityID as long,",
+						"          VMSBurdenID as integer,",
+						"          ExpenseTypeID as integer,",
+						"          SplitTimesheetsForMonthlyBilling as boolean,",
+						"          TimesheetCreationOption as integer,",
+						"          InvoiceTemplateIDPerm as integer,",
+						"          TimesheetEntryTemplateID as integer,",
+						"          DefaultContactID as integer,",
+						"          EmailCC as string,",
+						"          NeedsIndexing as boolean,",
+						"          AllowEmptyTimesheets as boolean,",
+						"          ExternalVendorID as string,",
+						"          LoadVouchersAsOnHold as boolean,",
+						"          ARCollectorUserID as string,",
+						"          CashOnAccount as decimal(19,4),",
+						"          TimesheetRangeCalendarID as integer,",
+						"          TimesheetBatchID as integer,",
+						"          TimesheetNotificationOptions as integer,",
+						"          DefaultAddressID as long,",
+						"          CreditScore as string,",
+						"          LegalName as string,",
+						"          CreditLimit as double,",
+						"          LateFeePercentage as double,",
+						"          ShowTimesheetBillingTotalToContact as boolean,",
+						"          InvoiceModeID as integer,",
+						"          OvertimeTypeID as integer,",
+						"          DefaultFolderGroupID as integer,",
+						"          CancellationDays as integer,",
+						"          AdminBurdenID as integer,",
+						"          OvertimeMultiplier as decimal(9,4),",
+						"          DoubletimeMultiplier as decimal(9,4),",
+						"          DivisionMarketID as integer,",
+						"          DefaultBillRateMarkupPercentage as decimal(18,6),",
+						"          DefaultVendorRateMarkupPercentage as decimal(18,6),",
+						"          DefaultRateHolidayListID as integer,",
+						"          ContactPortalInfo as string,",
+						"          InvoiceDiscountPercent as decimal(22,10),",
+						"          CONTACT_ID_APPROVETIMESHEET as integer,",
+						"          InvoiceTemplateIDMilestone as integer,",
+						"          MilestoneTransactionTypeID as integer,",
+						"          DefaultClientProjectID as integer,",
+						"          VATID as string,",
+						"          CreatedBy as string,",
+						"          RoutingFlagID as integer,",
+						"          TLBillProcessingCalendarID as integer,",
+						"          LastModifiedOn as timestamp,",
+						"          PONumberRequiredOnTimesheetEntry as boolean,",
+						"          PONumberVisibleOnTimesheetEntry as boolean,",
+						"          DefaultCompanyPONumberID as integer,",
+						"          SalesTaxExemptStates as string,",
+						"          TimesheetBillRateMarginPercent as decimal(5,4),",
+						"          AdSourceId as integer,",
+						"          SourceSystemCode as string,",
+						"          LoadDate as timestamp,",
+						"          UpdateDate as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     staged: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSynapseAnalyticsTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Write to Final Sink')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Parquet1",
+								"type": "DatasetReference"
+							},
+							"name": "CTIncrementalStagingTable"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsTable1",
+								"type": "DatasetReference"
+							},
+							"name": "FinalSinkTable"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          SourceSystemCode as string,",
+						"          LoadDate as timestamp,",
+						"          UpdateDate as timestamp,",
+						"          COMPANY_ID as integer,",
+						"          NAME as string,",
+						"          ADDRESS_LINE1 as string,",
+						"          CITY as string,",
+						"          POSTAL_CODE as string,",
+						"          PHONE as string,",
+						"          FAX as string,",
+						"          EMAIL as string,",
+						"          HOME_PAGE as string,",
+						"          DEFAULT_CONTRACT_ID as integer,",
+						"          CONTRACT_REMINDER_LEVEL as integer,",
+						"          LIST as boolean,",
+						"          CONTRACT_EXPIRES as timestamp,",
+						"          CONTRACT_SW as boolean,",
+						"          DESCRIPTION as string,",
+						"          DIRECTIONS as string,",
+						"          DAYS_TO_PAY as decimal(6,0),",
+						"          FEE_PERCENTAGE as float,",
+						"          CONTRACTOR_FEE_PERCENTAGE as float,",
+						"          FLAT_FEE as decimal(19,4),",
+						"          AD_SOURCE as string,",
+						"          HR_REP_ID as integer,",
+						"          CONTRACT_NOTES as string,",
+						"          MANAGERS_NOTES as string,",
+						"          HR_NOTES as string,",
+						"          REGION_ID as integer,",
+						"          STATE as string,",
+						"          COUNTRY as string,",
+						"          DATE_ENTERED as timestamp,",
+						"          CONTRACT_SENT as timestamp,",
+						"          INDUSTRY_SUB_ID as integer,",
+						"          INDUSTRY as string,",
+						"          COMPANY_SUBM as integer,",
+						"          COMPANY_INV as integer,",
+						"          COMPANY_F_INT as integer,",
+						"          COMPANY_OFFER as integer,",
+						"          COMPANY_PLAC as integer,",
+						"          COMPANY_BILLING as decimal(19,4),",
+						"          COMPANY_AVG_D as float,",
+						"          COMPANY_RATING as float,",
+						"          DUPGROUP as string,",
+						"          DUPFLAG as string,",
+						"          DUPFREQ as string,",
+						"          DONOTCALL as boolean,",
+						"          VMS_SW as boolean,",
+						"          BH_ID as integer,",
+						"          OwnerID as string,",
+						"          IsOwnershipPermanent as boolean,",
+						"          IsAgreementRequired as boolean,",
+						"          IsSummaryBilling as boolean,",
+						"          StatusID as integer,",
+						"          DefaultBillTo as integer,",
+						"          LastNoteID as long,",
+						"          InvoiceBatchID as integer,",
+						"          PaymentTermsID as integer,",
+						"          TimesheetPeriodsRangeCalendarID as integer,",
+						"          Timestamp as binary,",
+						"          FYEndDate as integer,",
+						"          IsMergedTo as integer,",
+						"          CompanyStatusChangedToActiveDate as date,",
+						"          OwnerEntityID as string,",
+						"          AdsourceAdditionalInfo as string,",
+						"          PrimaryPhone as string,",
+						"          PrimaryPhoneTypeName as string,",
+						"          PrimaryEmail as string,",
+						"          PrimaryEmailTypeName as string,",
+						"          AutoCreateTimesheets as boolean,",
+						"          CompanyTypeID as integer,",
+						"          InvoiceTemplateID as integer,",
+						"          OpportunityID as long,",
+						"          VMSBurdenID as integer,",
+						"          ExpenseTypeID as integer,",
+						"          SplitTimesheetsForMonthlyBilling as boolean,",
+						"          TimesheetCreationOption as integer,",
+						"          InvoiceTemplateIDPerm as integer,",
+						"          TimesheetEntryTemplateID as integer,",
+						"          DefaultContactID as integer,",
+						"          EmailCC as string,",
+						"          NeedsIndexing as boolean,",
+						"          AllowEmptyTimesheets as boolean,",
+						"          ExternalVendorID as string,",
+						"          LoadVouchersAsOnHold as boolean,",
+						"          ARCollectorUserID as string,",
+						"          CashOnAccount as decimal(19,4),",
+						"          TimesheetRangeCalendarID as integer,",
+						"          TimesheetBatchID as integer,",
+						"          TimesheetNotificationOptions as integer,",
+						"          DefaultAddressID as long,",
+						"          CreditScore as string,",
+						"          LegalName as string,",
+						"          CreditLimit as double,",
+						"          LateFeePercentage as double,",
+						"          ShowTimesheetBillingTotalToContact as boolean,",
+						"          InvoiceModeID as integer,",
+						"          OvertimeTypeID as integer,",
+						"          DefaultFolderGroupID as integer,",
+						"          CancellationDays as integer,",
+						"          AdminBurdenID as integer,",
+						"          OvertimeMultiplier as decimal(9,4),",
+						"          DoubletimeMultiplier as decimal(9,4),",
+						"          DivisionMarketID as integer,",
+						"          DefaultBillRateMarkupPercentage as decimal(18,6),",
+						"          DefaultVendorRateMarkupPercentage as decimal(18,6),",
+						"          DefaultRateHolidayListID as integer,",
+						"          ContactPortalInfo as string,",
+						"          InvoiceDiscountPercent as decimal(22,10),",
+						"          CONTACT_ID_APPROVETIMESHEET as integer,",
+						"          InvoiceTemplateIDMilestone as integer,",
+						"          MilestoneTransactionTypeID as integer,",
+						"          DefaultClientProjectID as integer,",
+						"          VATID as string,",
+						"          CreatedBy as string,",
+						"          RoutingFlagID as integer,",
+						"          TLBillProcessingCalendarID as integer,",
+						"          LastModifiedOn as timestamp,",
+						"          PONumberRequiredOnTimesheetEntry as boolean,",
+						"          PONumberVisibleOnTimesheetEntry as boolean,",
+						"          DefaultCompanyPONumberID as integer,",
+						"          SalesTaxExemptStates as string,",
+						"          TimesheetBillRateMarginPercent as decimal(5,4),",
+						"          AdSourceId as integer,",
+						"          CTKey as integer,",
+						"          SYS_CHANGE_VERSION as long,",
+						"          SYS_CHANGE_OPERATION as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'htwssyndevs1a') ~> CTIncrementalStagingTable",
+						"CTIncrementalStagingTable sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          COMPANY_ID as integer,",
+						"          NAME as string,",
+						"          ADDRESS_LINE1 as string,",
+						"          CITY as string,",
+						"          POSTAL_CODE as string,",
+						"          PHONE as string,",
+						"          FAX as string,",
+						"          EMAIL as string,",
+						"          HOME_PAGE as string,",
+						"          DEFAULT_CONTRACT_ID as integer,",
+						"          CONTRACT_REMINDER_LEVEL as integer,",
+						"          LIST as boolean,",
+						"          CONTRACT_EXPIRES as timestamp,",
+						"          CONTRACT_SW as boolean,",
+						"          DESCRIPTION as string,",
+						"          DIRECTIONS as string,",
+						"          DAYS_TO_PAY as decimal(6,0),",
+						"          FEE_PERCENTAGE as float,",
+						"          CONTRACTOR_FEE_PERCENTAGE as float,",
+						"          FLAT_FEE as decimal(19,4),",
+						"          AD_SOURCE as string,",
+						"          HR_REP_ID as integer,",
+						"          CONTRACT_NOTES as string,",
+						"          MANAGERS_NOTES as string,",
+						"          HR_NOTES as string,",
+						"          REGION_ID as integer,",
+						"          STATE as string,",
+						"          COUNTRY as string,",
+						"          DATE_ENTERED as timestamp,",
+						"          CONTRACT_SENT as timestamp,",
+						"          INDUSTRY_SUB_ID as integer,",
+						"          INDUSTRY as string,",
+						"          COMPANY_SUBM as integer,",
+						"          COMPANY_INV as integer,",
+						"          COMPANY_F_INT as integer,",
+						"          COMPANY_OFFER as integer,",
+						"          COMPANY_PLAC as integer,",
+						"          COMPANY_BILLING as decimal(19,4),",
+						"          COMPANY_AVG_D as float,",
+						"          COMPANY_RATING as float,",
+						"          DUPGROUP as string,",
+						"          DUPFLAG as string,",
+						"          DUPFREQ as string,",
+						"          DONOTCALL as boolean,",
+						"          VMS_SW as boolean,",
+						"          BH_ID as integer,",
+						"          OwnerID as string,",
+						"          IsOwnershipPermanent as boolean,",
+						"          IsAgreementRequired as boolean,",
+						"          IsSummaryBilling as boolean,",
+						"          StatusID as integer,",
+						"          DefaultBillTo as integer,",
+						"          LastNoteID as long,",
+						"          InvoiceBatchID as integer,",
+						"          PaymentTermsID as integer,",
+						"          TimesheetPeriodsRangeCalendarID as integer,",
+						"          Timestamp as string,",
+						"          FYEndDate as integer,",
+						"          IsMergedTo as integer,",
+						"          CompanyStatusChangedToActiveDate as date,",
+						"          OwnerEntityID as string,",
+						"          AdsourceAdditionalInfo as string,",
+						"          PrimaryPhone as string,",
+						"          PrimaryPhoneTypeName as string,",
+						"          PrimaryEmail as string,",
+						"          PrimaryEmailTypeName as string,",
+						"          AutoCreateTimesheets as boolean,",
+						"          CompanyTypeID as integer,",
+						"          InvoiceTemplateID as integer,",
+						"          OpportunityID as long,",
+						"          VMSBurdenID as integer,",
+						"          ExpenseTypeID as integer,",
+						"          SplitTimesheetsForMonthlyBilling as boolean,",
+						"          TimesheetCreationOption as integer,",
+						"          InvoiceTemplateIDPerm as integer,",
+						"          TimesheetEntryTemplateID as integer,",
+						"          DefaultContactID as integer,",
+						"          EmailCC as string,",
+						"          NeedsIndexing as boolean,",
+						"          AllowEmptyTimesheets as boolean,",
+						"          ExternalVendorID as string,",
+						"          LoadVouchersAsOnHold as boolean,",
+						"          ARCollectorUserID as string,",
+						"          CashOnAccount as decimal(19,4),",
+						"          TimesheetRangeCalendarID as integer,",
+						"          TimesheetBatchID as integer,",
+						"          TimesheetNotificationOptions as integer,",
+						"          DefaultAddressID as long,",
+						"          CreditScore as string,",
+						"          LegalName as string,",
+						"          CreditLimit as double,",
+						"          LateFeePercentage as double,",
+						"          ShowTimesheetBillingTotalToContact as boolean,",
+						"          InvoiceModeID as integer,",
+						"          OvertimeTypeID as integer,",
+						"          DefaultFolderGroupID as integer,",
+						"          CancellationDays as integer,",
+						"          AdminBurdenID as integer,",
+						"          OvertimeMultiplier as decimal(9,4),",
+						"          DoubletimeMultiplier as decimal(9,4),",
+						"          DivisionMarketID as integer,",
+						"          DefaultBillRateMarkupPercentage as decimal(18,6),",
+						"          DefaultVendorRateMarkupPercentage as decimal(18,6),",
+						"          DefaultRateHolidayListID as integer,",
+						"          ContactPortalInfo as string,",
+						"          InvoiceDiscountPercent as decimal(22,10),",
+						"          CONTACT_ID_APPROVETIMESHEET as integer,",
+						"          InvoiceTemplateIDMilestone as integer,",
+						"          MilestoneTransactionTypeID as integer,",
+						"          DefaultClientProjectID as integer,",
+						"          VATID as string,",
+						"          CreatedBy as string,",
+						"          RoutingFlagID as integer,",
+						"          TLBillProcessingCalendarID as integer,",
+						"          LastModifiedOn as timestamp,",
+						"          PONumberRequiredOnTimesheetEntry as boolean,",
+						"          PONumberVisibleOnTimesheetEntry as boolean,",
+						"          DefaultCompanyPONumberID as integer,",
+						"          SalesTaxExemptStates as string,",
+						"          TimesheetBillRateMarginPercent as decimal(5,4),",
+						"          AdSourceId as integer,",
+						"          SourceSystemCode as string,",
+						"          LoadDate as timestamp,",
+						"          UpdateDate as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     staged: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'allErrors',",
+						"     transactionCommit: 'single',",
+						"     reportSuccessOnError: false,",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'dbo') ~> FinalSinkTable"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/datasets/AzureSynapseAnalyticsTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "select COUNT(*) from dbo.tealium_element_dtl",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Oracletest",
+						"poolName": "Oracletest"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "\n\n/****** Object:  Table [dbo].[COMPANY]    Script Date: 10/12/2022 4:42:08 PM ******/\nSET ANSI_NULLS ON\nGO\n\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[COMPANY](\n\t[COMPANY_ID] [int] NOT NULL,\n\t[NAME] [nvarchar](250) NULL,\n\t[ADDRESS_LINE1] [nvarchar](100) NULL,\n\t[CITY] [nvarchar](25) NULL,\n\t[POSTAL_CODE] [nvarchar](15) NULL,\n\t[PHONE] [nvarchar](20) NULL,\n\t[FAX] [nvarchar](20) NULL,\n\t[EMAIL] [nvarchar](100) NULL,\n\t[HOME_PAGE] [nvarchar](1024) NULL,\n\t[DEFAULT_CONTRACT_ID] [int] NULL,\n\t[CONTRACT_REMINDER_LEVEL] [int] NULL,\n\t[LIST] [bit] NULL,\n\t[CONTRACT_EXPIRES] [datetime] NULL,\n\t[CONTRACT_SW] [bit] NULL,\n\t[DESCRIPTION] [varchar](8000) NULL,\n\t[DIRECTIONS] [varchar](8000) NULL,\n\t[DAYS_TO_PAY] [numeric](6, 0) NULL,\n\t[FEE_PERCENTAGE] [real] NULL,\n\t[CONTRACTOR_FEE_PERCENTAGE] [real] NULL,\n\t[FLAT_FEE] [money] NULL,\n\t[AD_SOURCE] [nvarchar](250) NULL,\n\t[HR_REP_ID] [int] NULL,\n\t[CONTRACT_NOTES] [varchar](8000) NULL,\n\t[MANAGERS_NOTES] [varchar](8000) NULL,\n\t[HR_NOTES] [varchar](8000) NULL,\n\t[REGION_ID] [int] NULL,\n\t[STATE] [nvarchar](25) NULL,\n\t[COUNTRY] [nvarchar](35) NULL,\n\t[DATE_ENTERED] [datetime] NOT NULL,\n\t[CONTRACT_SENT] [datetime] NULL,\n\t[INDUSTRY_SUB_ID] [int] NULL,\n\t[INDUSTRY] [nvarchar](50) NULL,\n\t[COMPANY_SUBM] [int] NULL,\n\t[COMPANY_INV] [int] NULL,\n\t[COMPANY_F_INT] [int] NULL,\n\t[COMPANY_OFFER] [int] NULL,\n\t[COMPANY_PLAC] [int] NULL,\n\t[COMPANY_BILLING] [money] NULL,\n\t[COMPANY_AVG_D] [real] NULL,\n\t[COMPANY_RATING] [real] NULL,\n\t[DUPGROUP] [nvarchar](5) NULL,\n\t[DUPFLAG] [nvarchar](5) NULL,\n\t[DUPFREQ] [nvarchar](5) NULL,\n\t[DONOTCALL] [bit] NULL,\n\t[VMS_SW] [bit] NULL,\n\t[BH_ID] [int] NULL,\n\t[OwnerID] [uniqueidentifier] NULL,\n\t[IsOwnershipPermanent] [bit] NULL,\n\t[IsAgreementRequired] [bit] NULL,\n\t[IsSummaryBilling] [bit] NOT NULL,\n\t[StatusID] [int] NOT NULL,\n\t[DefaultBillTo] [int] NULL,\n\t[LastNoteID] [bigint] NULL,\n\t[InvoiceBatchID] [int] NULL,\n\t[PaymentTermsID] [int] NULL,\n\t[TimesheetPeriodsRangeCalendarID] [int] NULL,\n\t[Timestamp] [varchar](100) NOT NULL,\n\t[FYEndDate] [int] NULL,\n\t[IsMergedTo] [int] NULL,\n\t[CompanyStatusChangedToActiveDate] [date] NULL,\n\t[OwnerEntityID] [uniqueidentifier] NULL,\n\t[AdsourceAdditionalInfo] [varchar](8000) NULL,\n\t[PrimaryPhone] [nvarchar](1000) NULL,\n\t[PrimaryPhoneTypeName] [nvarchar](100) NULL,\n\t[PrimaryEmail] [nvarchar](1000) NULL,\n\t[PrimaryEmailTypeName] [nvarchar](100) NULL,\n\t[AutoCreateTimesheets] [bit] NOT NULL,\n\t[CompanyTypeID] [int] NULL,\n\t[InvoiceTemplateID] [int] NULL,\n\t[OpportunityID] [bigint] NULL,\n\t[VMSBurdenID] [int] NULL,\n\t[ExpenseTypeID] [int] NULL,\n\t[SplitTimesheetsForMonthlyBilling] [bit] NOT NULL,\n\t[TimesheetCreationOption] [int] NOT NULL,\n\t[InvoiceTemplateIDPerm] [int] NULL,\n\t[TimesheetEntryTemplateID] [int] NULL,\n\t[DefaultContactID] [int] NULL,\n\t[EmailCC] [nvarchar](200) NULL,\n\t[NeedsIndexing] [bit] NOT NULL,\n\t[AllowEmptyTimesheets] [bit] NOT NULL,\n\t[ExternalVendorID] [nvarchar](50) NULL,\n\t[LoadVouchersAsOnHold] [bit] NOT NULL,\n\t[ARCollectorUserID] [uniqueidentifier] NULL,\n\t[CashOnAccount] [money] NOT NULL,\n\t[TimesheetRangeCalendarID] [int] NULL,\n\t[TimesheetBatchID] [int] NULL,\n\t[TimesheetNotificationOptions] [int] NULL,\n\t[DefaultAddressID] [bigint] NULL,\n\t[CreditScore] [nvarchar](50) NULL,\n\t[LegalName] [nvarchar](100) NULL,\n\t[CreditLimit] [float] NULL,\n\t[LateFeePercentage] [float] NULL,\n\t[ShowTimesheetBillingTotalToContact] [bit] NOT NULL,\n\t[InvoiceModeID] [int] NULL,\n\t[OvertimeTypeID] [int] NULL,\n\t[DefaultFolderGroupID] [int] NULL,\n\t[CancellationDays] [int] NULL,\n\t[AdminBurdenID] [int] NULL,\n\t[OvertimeMultiplier] [decimal](9, 4) NULL,\n\t[DoubletimeMultiplier] [decimal](9, 4) NULL,\n\t[DivisionMarketID] [int] NULL,\n\t[DefaultBillRateMarkupPercentage] [decimal](18, 6) NULL,\n\t[DefaultVendorRateMarkupPercentage] [decimal](18, 6) NULL,\n\t[DefaultRateHolidayListID] [int] NULL,\n\t[ContactPortalInfo] [varchar](8000) NULL,\n\t[InvoiceDiscountPercent] [decimal](22, 10) NULL,\n\t[CONTACT_ID_APPROVETIMESHEET] [int] NULL,\n\t[InvoiceTemplateIDMilestone] [int] NULL,\n\t[MilestoneTransactionTypeID] [int] NULL,\n\t[DefaultClientProjectID] [int] NULL,\n\t[VATID] [nvarchar](20) NULL,\n\t[CreatedBy] [uniqueidentifier] NULL,\n\t[RoutingFlagID] [int] NULL,\n\t[TLBillProcessingCalendarID] [int] NULL,\n\t[LastModifiedOn] [datetime] NULL,\n\t[PONumberRequiredOnTimesheetEntry] [bit] NOT NULL,\n\t[PONumberVisibleOnTimesheetEntry] [bit] NOT NULL,\n\t[DefaultCompanyPONumberID] [int] NULL,\n\t[SalesTaxExemptStates] [varchar](8000) NULL,\n\t[TimesheetBillRateMarginPercent] [decimal](5, 4) NULL,\n\t[AdSourceId] [int] NULL,\n\t[SourceSystemCode] VARCHAR(10) NOT NULL,\n\tLoadDate DATETIME NOT NULL,\n\tUpdateDate DATETIME NOT NULL\n) \nWITH (Distribution = HASH(COMPANY_ID))\nGO\n\n\nALTER TABLE [dbo].[COMPANY] ADD  CONSTRAINT [PK_COMPANY] PRIMARY KEY NONCLUSTERED \n(\n\t[COMPANY_ID] ASC,\n\t[UpdateDate] ASC\n) NOT ENFORCED \nGO\n\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Oracletest",
+						"poolName": "Oracletest"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE EXTERNAL FILE FORMAT snappyparquet\nWITH\n(FORMAT_TYPE = PARQUET,\nDATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\n\nCOPY INTO [dbo].[COMPANY2]\nFROM 'https://storagemeghashah.dfs.core.windows.net/test/Company_Incremental_2023-04-14T16_12_41.3430923Z (1) (1).parquet'\nWITH (\nFILE_FORMAT = [snappyparquet],\nCREDENTIAL = (IDENTITY='Managed Identity')\n)\n\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Shahtest@123456';\n\nCREATE DATABASE SCOPED CREDENTIAL msi_cred WITH IDENTITY = 'Managed Service Identity';\n\nSELECT CONVERT (varchar(256), SERVERPROPERTY('collation')); \n\nselect LEN(description) from company where len(description)>8000;\n\nSELECT column_name, data_Type, character_maximum_length\nFROM information_Schema.columns\nWHERE table_name='Company'\n\nCOL_LENGTH('Company','MANAGERS_NOTES')\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Oracletest",
+						"poolName": "Oracletest"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "\n\n/****** Object:  Table [dbo].[COMPANY]    Script Date: 10/12/2022 4:42:08 PM ******/\nSET ANSI_NULLS ON\nGO\n\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[COMPANY2](\n\t[COMPANY_ID] [int] NOT NULL,\n\t[NAME] [nvarchar](250) NULL,\n\t[ADDRESS_LINE1] [nvarchar](100) NULL,\n\t[CITY] [nvarchar](25) NULL,\n\t[POSTAL_CODE] [nvarchar](15) NULL,\n\t[PHONE] [nvarchar](20) NULL,\n\t[FAX] [nvarchar](20) NULL,\n\t[EMAIL] [nvarchar](100) NULL,\n\t[HOME_PAGE] [nvarchar](1024) NULL,\n\t[DEFAULT_CONTRACT_ID] [int] NULL,\n\t[CONTRACT_REMINDER_LEVEL] [int] NULL,\n\t[LIST] [bit] NULL,\n\t[CONTRACT_EXPIRES] [datetime] NULL,\n\t[CONTRACT_SW] [bit] NULL,\n\t[DESCRIPTION] [varchar](8000) NULL,\n\t[DIRECTIONS] [varchar](8000) NULL,\n\t[DAYS_TO_PAY] [numeric](6, 0) NULL,\n\t[FEE_PERCENTAGE] [real] NULL,\n\t[CONTRACTOR_FEE_PERCENTAGE] [real] NULL,\n\t[FLAT_FEE] [money] NULL,\n\t[AD_SOURCE] [nvarchar](250) NULL,\n\t[HR_REP_ID] [int] NULL,\n\t[CONTRACT_NOTES] [varchar](8000) NULL,\n\t[MANAGERS_NOTES] [varchar](8000) NULL,\n\t[HR_NOTES] [varchar](8000) NULL,\n\t[REGION_ID] [int] NULL,\n\t[STATE] [nvarchar](25) NULL,\n\t[COUNTRY] [nvarchar](35) NULL,\n\t[DATE_ENTERED] [datetime] NOT NULL,\n\t[CONTRACT_SENT] [datetime] NULL,\n\t[INDUSTRY_SUB_ID] [int] NULL,\n\t[INDUSTRY] [nvarchar](50) NULL,\n\t[COMPANY_SUBM] [int] NULL,\n\t[COMPANY_INV] [int] NULL,\n\t[COMPANY_F_INT] [int] NULL,\n\t[COMPANY_OFFER] [int] NULL,\n\t[COMPANY_PLAC] [int] NULL,\n\t[COMPANY_BILLING] [money] NULL,\n\t[COMPANY_AVG_D] [real] NULL,\n\t[COMPANY_RATING] [real] NULL,\n\t[DUPGROUP] [nvarchar](5) NULL,\n\t[DUPFLAG] [nvarchar](5) NULL,\n\t[DUPFREQ] [nvarchar](5) NULL,\n\t[DONOTCALL] [bit] NULL,\n\t[VMS_SW] [bit] NULL,\n\t[BH_ID] [int] NULL,\n\t[OwnerID] [uniqueidentifier] NULL,\n\t[IsOwnershipPermanent] [bit] NULL,\n\t[IsAgreementRequired] [bit] NULL,\n\t[IsSummaryBilling] [bit] NOT NULL,\n\t[StatusID] [int] NOT NULL,\n\t[DefaultBillTo] [int] NULL,\n\t[LastNoteID] [bigint] NULL,\n\t[InvoiceBatchID] [int] NULL,\n\t[PaymentTermsID] [int] NULL,\n\t[TimesheetPeriodsRangeCalendarID] [int] NULL,\n\t[Timestamp] [varchar](100) NOT NULL,\n\t[FYEndDate] [int] NULL,\n\t[IsMergedTo] [int] NULL,\n\t[CompanyStatusChangedToActiveDate] [date] NULL,\n\t[OwnerEntityID] [uniqueidentifier] NULL,\n\t[AdsourceAdditionalInfo] [varchar](8000) NULL,\n\t[PrimaryPhone] [nvarchar](1000) NULL,\n\t[PrimaryPhoneTypeName] [nvarchar](100) NULL,\n\t[PrimaryEmail] [nvarchar](1000) NULL,\n\t[PrimaryEmailTypeName] [nvarchar](100) NULL,\n\t[AutoCreateTimesheets] [bit] NOT NULL,\n\t[CompanyTypeID] [int] NULL,\n\t[InvoiceTemplateID] [int] NULL,\n\t[OpportunityID] [bigint] NULL,\n\t[VMSBurdenID] [int] NULL,\n\t[ExpenseTypeID] [int] NULL,\n\t[SplitTimesheetsForMonthlyBilling] [bit] NOT NULL,\n\t[TimesheetCreationOption] [int] NOT NULL,\n\t[InvoiceTemplateIDPerm] [int] NULL,\n\t[TimesheetEntryTemplateID] [int] NULL,\n\t[DefaultContactID] [int] NULL,\n\t[EmailCC] [nvarchar](200) NULL,\n\t[NeedsIndexing] [bit] NOT NULL,\n\t[AllowEmptyTimesheets] [bit] NOT NULL,\n\t[ExternalVendorID] [nvarchar](50) NULL,\n\t[LoadVouchersAsOnHold] [bit] NOT NULL,\n\t[ARCollectorUserID] [uniqueidentifier] NULL,\n\t[CashOnAccount] [money] NOT NULL,\n\t[TimesheetRangeCalendarID] [int] NULL,\n\t[TimesheetBatchID] [int] NULL,\n\t[TimesheetNotificationOptions] [int] NULL,\n\t[DefaultAddressID] [bigint] NULL,\n\t[CreditScore] [nvarchar](50) NULL,\n\t[LegalName] [nvarchar](100) NULL,\n\t[CreditLimit] [float] NULL,\n\t[LateFeePercentage] [float] NULL,\n\t[ShowTimesheetBillingTotalToContact] [bit] NOT NULL,\n\t[InvoiceModeID] [int] NULL,\n\t[OvertimeTypeID] [int] NULL,\n\t[DefaultFolderGroupID] [int] NULL,\n\t[CancellationDays] [int] NULL,\n\t[AdminBurdenID] [int] NULL,\n\t[OvertimeMultiplier] [decimal](9, 4) NULL,\n\t[DoubletimeMultiplier] [decimal](9, 4) NULL,\n\t[DivisionMarketID] [int] NULL,\n\t[DefaultBillRateMarkupPercentage] [decimal](18, 6) NULL,\n\t[DefaultVendorRateMarkupPercentage] [decimal](18, 6) NULL,\n\t[DefaultRateHolidayListID] [int] NULL,\n\t[ContactPortalInfo] [varchar](8000) NULL,\n\t[InvoiceDiscountPercent] [decimal](22, 10) NULL,\n\t[CONTACT_ID_APPROVETIMESHEET] [int] NULL,\n\t[InvoiceTemplateIDMilestone] [int] NULL,\n\t[MilestoneTransactionTypeID] [int] NULL,\n\t[DefaultClientProjectID] [int] NULL,\n\t[VATID] [nvarchar](20) NULL,\n\t[CreatedBy] [uniqueidentifier] NULL,\n\t[RoutingFlagID] [int] NULL,\n\t[TLBillProcessingCalendarID] [int] NULL,\n\t[LastModifiedOn] [datetime] NULL,\n\t[PONumberRequiredOnTimesheetEntry] [bit] NOT NULL,\n\t[PONumberVisibleOnTimesheetEntry] [bit] NOT NULL,\n\t[DefaultCompanyPONumberID] [int] NULL,\n\t[SalesTaxExemptStates] [varchar](8000) NULL,\n\t[TimesheetBillRateMarginPercent] [decimal](5, 4) NULL,\n\t[AdSourceId] [int] NULL,\n\t[SourceSystemCode] VARCHAR(10) NOT NULL,\n\tLoadDate DATETIME NOT NULL,\n\tUpdateDate DATETIME NOT NULL\n) \nWITH (Distribution = HASH(COMPANY_ID))\nGO\n\n\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Oracletest",
+						"poolName": "Oracletest"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 5')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [COMPANY_ID]\n,[NAME]\n,[ADDRESS_LINE1]\n,[CITY]\n,[POSTAL_CODE]\n,[PHONE]\n,[FAX]\n,[EMAIL]\n,[HOME_PAGE]\n,[DEFAULT_CONTRACT_ID]\n,[CONTRACT_REMINDER_LEVEL]\n,[LIST]\n,[CONTRACT_EXPIRES]\n,[CONTRACT_SW]\n,[DESCRIPTION]\n,[DIRECTIONS]\n,[DAYS_TO_PAY]\n,[FEE_PERCENTAGE]\n,[CONTRACTOR_FEE_PERCENTAGE]\n,[FLAT_FEE]\n,[AD_SOURCE]\n,[HR_REP_ID]\n,[CONTRACT_NOTES]\n,[MANAGERS_NOTES]\n,[HR_NOTES]\n,[REGION_ID]\n,[STATE]\n,[COUNTRY]\n,[DATE_ENTERED]\n,[CONTRACT_SENT]\n,[INDUSTRY_SUB_ID]\n,[INDUSTRY]\n,[COMPANY_SUBM]\n,[COMPANY_INV]\n,[COMPANY_F_INT]\n,[COMPANY_OFFER]\n,[COMPANY_PLAC]\n,[COMPANY_BILLING]\n,[COMPANY_AVG_D]\n,[COMPANY_RATING]\n,[DUPGROUP]\n,[DUPFLAG]\n,[DUPFREQ]\n,[DONOTCALL]\n,[VMS_SW]\n,[BH_ID]\n,[OwnerID]\n,[IsOwnershipPermanent]\n,[IsAgreementRequired]\n,[IsSummaryBilling]\n,[StatusID]\n,[DefaultBillTo]\n,[LastNoteID]\n,[InvoiceBatchID]\n,[PaymentTermsID]\n,[TimesheetPeriodsRangeCalendarID]\n,[Timestamp]\n,[FYEndDate]\n,[IsMergedTo]\n,[CompanyStatusChangedToActiveDate]\n,[OwnerEntityID]\n,[AdsourceAdditionalInfo]\n,[PrimaryPhone]\n,[PrimaryPhoneTypeName]\n,[PrimaryEmail]\n,[PrimaryEmailTypeName]\n,[AutoCreateTimesheets]\n,[CompanyTypeID]\n,[InvoiceTemplateID]\n,[OpportunityID]\n,[VMSBurdenID]\n,[ExpenseTypeID]\n,[SplitTimesheetsForMonthlyBilling]\n,[TimesheetCreationOption]\n,[InvoiceTemplateIDPerm]\n,[TimesheetEntryTemplateID]\n,[DefaultContactID]\n,[EmailCC]\n,[NeedsIndexing]\n,[AllowEmptyTimesheets]\n,[ExternalVendorID]\n,[LoadVouchersAsOnHold]\n,[ARCollectorUserID]\n,[CashOnAccount]\n,[TimesheetRangeCalendarID]\n,[TimesheetBatchID]\n,[TimesheetNotificationOptions]\n,[DefaultAddressID]\n,[CreditScore]\n,[LegalName]\n,[CreditLimit]\n,[LateFeePercentage]\n,[ShowTimesheetBillingTotalToContact]\n,[InvoiceModeID]\n,[OvertimeTypeID]\n,[DefaultFolderGroupID]\n,[CancellationDays]\n,[AdminBurdenID]\n,[OvertimeMultiplier]\n,[DoubletimeMultiplier]\n,[DivisionMarketID]\n,[DefaultBillRateMarkupPercentage]\n,[DefaultVendorRateMarkupPercentage]\n,[DefaultRateHolidayListID]\n,[ContactPortalInfo]\n,[InvoiceDiscountPercent]\n,[CONTACT_ID_APPROVETIMESHEET]\n,[InvoiceTemplateIDMilestone]\n,[MilestoneTransactionTypeID]\n,[DefaultClientProjectID]\n,[VATID]\n,[CreatedBy]\n,[RoutingFlagID]\n,[TLBillProcessingCalendarID]\n,[LastModifiedOn]\n,[PONumberRequiredOnTimesheetEntry]\n,[PONumberVisibleOnTimesheetEntry]\n,[DefaultCompanyPONumberID]\n,[SalesTaxExemptStates]\n,[TimesheetBillRateMarginPercent]\n,[AdSourceId]\n,[SourceSystemCode]\n,[LoadDate]\n,[UpdateDate]\n FROM [dbo].[COMPANY2]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Oracletest",
+						"poolName": "Oracletest"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 6')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [SourceSystemCode]\n,[LoadDate]\n,[Timestamp]\n FROM [dbo].[company5]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "Oracletest",
+						"poolName": "Oracletest"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Oracletest')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "eastus"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/AzureBlobStorage216')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/afd7de1c-d696-4e2d-9324-a7476f2ceeee/resourceGroups/training/providers/Microsoft.Storage/storageAccounts/gen2megha",
+				"groupId": "blob"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/AzureBlobStorage255')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/a99ac8de-0c3b-472a-bb02-04d75d4dcd88/resourceGroups/Harish_RG/providers/Microsoft.Storage/storageAccounts/harishadlsgen2",
+				"groupId": "blob",
+				"fqdns": [
+					"harishadlsgen2.blob.core.windows.net"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/AzureBlobStorage65')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/afd7de1c-d696-4e2d-9324-a7476f2ceeee/resourceGroups/training/providers/Microsoft.Storage/storageAccounts/meghatestmachi4548119195",
+				"groupId": "blob"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/synapse-ws-custstgacct--meghasynapse-gen2megha')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/afd7de1c-d696-4e2d-9324-a7476f2ceeee/resourceGroups/training/providers/Microsoft.Storage/storageAccounts/gen2megha",
+				"groupId": "dfs"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/synapse-ws-sql--meghasynapse')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/afd7de1c-d696-4e2d-9324-a7476f2ceeee/resourceGroups/training/providers/Microsoft.Synapse/workspaces/meghasynapse",
+				"groupId": "sql",
+				"fqdns": [
+					"meghasynapse.d2d2cd04-888b-4995-bde9-03090103fff2.sql.azuresynapse.net"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/default/synapse-ws-sqlOnDemand--meghasynapse')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/afd7de1c-d696-4e2d-9324-a7476f2ceeee/resourceGroups/training/providers/Microsoft.Synapse/workspaces/meghasynapse",
+				"groupId": "sqlOnDemand",
+				"fqdns": [
+					"meghasynapse-ondemand.d2d2cd04-888b-4995-bde9-03090103fff2.sql.azuresynapse.net"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		}
+	]
+}
