@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 6",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [SourceSystemCode]\n,[LoadDate]\n,[Timestamp]\n FROM [dbo].[company5]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Oracletest",
+				"poolName": "Oracletest"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

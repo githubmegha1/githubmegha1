@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 5",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [COMPANY_ID]\n,[NAME]\n,[ADDRESS_LINE1]\n,[CITY]\n,[POSTAL_CODE]\n,[PHONE]\n,[FAX]\n,[EMAIL]\n,[HOME_PAGE]\n,[DEFAULT_CONTRACT_ID]\n,[CONTRACT_REMINDER_LEVEL]\n,[LIST]\n,[CONTRACT_EXPIRES]\n,[CONTRACT_SW]\n,[DESCRIPTION]\n,[DIRECTIONS]\n,[DAYS_TO_PAY]\n,[FEE_PERCENTAGE]\n,[CONTRACTOR_FEE_PERCENTAGE]\n,[FLAT_FEE]\n,[AD_SOURCE]\n,[HR_REP_ID]\n,[CONTRACT_NOTES]\n,[MANAGERS_NOTES]\n,[HR_NOTES]\n,[REGION_ID]\n,[STATE]\n,[COUNTRY]\n,[DATE_ENTERED]\n,[CONTRACT_SENT]\n,[INDUSTRY_SUB_ID]\n,[INDUSTRY]\n,[COMPANY_SUBM]\n,[COMPANY_INV]\n,[COMPANY_F_INT]\n,[COMPANY_OFFER]\n,[COMPANY_PLAC]\n,[COMPANY_BILLING]\n,[COMPANY_AVG_D]\n,[COMPANY_RATING]\n,[DUPGROUP]\n,[DUPFLAG]\n,[DUPFREQ]\n,[DONOTCALL]\n,[VMS_SW]\n,[BH_ID]\n,[OwnerID]\n,[IsOwnershipPermanent]\n,[IsAgreementRequired]\n,[IsSummaryBilling]\n,[StatusID]\n,[DefaultBillTo]\n,[LastNoteID]\n,[InvoiceBatchID]\n,[PaymentTermsID]\n,[TimesheetPeriodsRangeCalendarID]\n,[Timestamp]\n,[FYEndDate]\n,[IsMergedTo]\n,[CompanyStatusChangedToActiveDate]\n,[OwnerEntityID]\n,[AdsourceAdditionalInfo]\n,[PrimaryPhone]\n,[PrimaryPhoneTypeName]\n,[PrimaryEmail]\n,[PrimaryEmailTypeName]\n,[AutoCreateTimesheets]\n,[CompanyTypeID]\n,[InvoiceTemplateID]\n,[OpportunityID]\n,[VMSBurdenID]\n,[ExpenseTypeID]\n,[SplitTimesheetsForMonthlyBilling]\n,[TimesheetCreationOption]\n,[InvoiceTemplateIDPerm]\n,[TimesheetEntryTemplateID]\n,[DefaultContactID]\n,[EmailCC]\n,[NeedsIndexing]\n,[AllowEmptyTimesheets]\n,[ExternalVendorID]\n,[LoadVouchersAsOnHold]\n,[ARCollectorUserID]\n,[CashOnAccount]\n,[TimesheetRangeCalendarID]\n,[TimesheetBatchID]\n,[TimesheetNotificationOptions]\n,[DefaultAddressID]\n,[CreditScore]\n,[LegalName]\n,[CreditLimit]\n,[LateFeePercentage]\n,[ShowTimesheetBillingTotalToContact]\n,[InvoiceModeID]\n,[OvertimeTypeID]\n,[DefaultFolderGroupID]\n,[CancellationDays]\n,[AdminBurdenID]\n,[OvertimeMultiplier]\n,[DoubletimeMultiplier]\n,[DivisionMarketID]\n,[DefaultBillRateMarkupPercentage]\n,[DefaultVendorRateMarkupPercentage]\n,[DefaultRateHolidayListID]\n,[ContactPortalInfo]\n,[InvoiceDiscountPercent]\n,[CONTACT_ID_APPROVETIMESHEET]\n,[InvoiceTemplateIDMilestone]\n,[MilestoneTransactionTypeID]\n,[DefaultClientProjectID]\n,[VATID]\n,[CreatedBy]\n,[RoutingFlagID]\n,[TLBillProcessingCalendarID]\n,[LastModifiedOn]\n,[PONumberRequiredOnTimesheetEntry]\n,[PONumberVisibleOnTimesheetEntry]\n,[DefaultCompanyPONumberID]\n,[SalesTaxExemptStates]\n,[TimesheetBillRateMarginPercent]\n,[AdSourceId]\n,[SourceSystemCode]\n,[LoadDate]\n,[UpdateDate]\n FROM [dbo].[COMPANY2]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "Oracletest",
+				"poolName": "Oracletest"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
